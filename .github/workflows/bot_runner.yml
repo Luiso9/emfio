@@ -1,0 +1,32 @@
+name: "Sample Bot"
+on:
+  workflow_run:
+    workflows: [init banner]
+    types:
+       - completed
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sample-bot:
+    runs-on: ubuntu-latest
+    if: ${{ github.triggering_actor == github.repository_owner }} 
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run
+        continue-on-error: true
+        env:
+            tok_fb: ${{ secrets.TOK_FB }}
+            tok_gif: ${{ secrets.TOK_GIF }}
+        run: bash frame_main.sh "${tok_fb}" "${tok_gif}"
+        
+      - name: Auto Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "stat: Posted!!"
+          repository: .
+          file_pattern: README.md fb/* frameposter.sh frame_main.sh status/* 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
